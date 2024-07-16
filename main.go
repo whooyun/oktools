@@ -2,13 +2,14 @@ package main
 
 import (
 	"embed"
-	"github.com/gin-contrib/gzip"
-	"github.com/gin-gonic/gin"
 	"html/template"
 	"log"
 	"net/http"
 	_ "net/http/pprof"
 	"os"
+
+	"github.com/gin-contrib/gzip"
+	"github.com/gin-gonic/gin"
 )
 
 //go:embed templates
@@ -74,7 +75,7 @@ func runNoTLS() {
 			if "/websocket" == uri {
 				WebSocket(c)
 			} else {
-				c.Redirect(http.StatusMovedPermanently, "https://oktools.net"+uri)
+				c.Redirect(http.StatusMovedPermanently, "https://t.fuzhicode.com"+uri)
 			}
 		})
 
