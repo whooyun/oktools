@@ -2,11 +2,13 @@ package main
 
 import (
 	"embed"
+	"fmt"
 	"html/template"
 	"log"
 	"net/http"
 	_ "net/http/pprof"
 	"os"
+	"time"
 
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
@@ -103,28 +105,48 @@ func initRouter() *gin.Engine {
 		c.File("./static/favicon.ico")
 	})
 
-	r.GET("/", Index)
-	r.GET("/base64", Base64)
-	r.GET("/image2base64", Image2Base64)
-	r.GET("/tinyimg", TinyImage)
-	r.GET("/hash", Hash)
-	r.GET("/file-hash", FileHash)
-	r.GET("/json", JSONView)
-	r.GET("/number", Number)
-	r.GET("/qrcode", QRCode)
-	r.GET("/regex", Regex)
-	r.GET("/timestamp", Timestamp)
-	r.GET("/color", Color)
-	r.GET("/aes", AES)
-	r.GET("/des", DES)
-	r.GET("/rsa", RSA)
-	r.GET("/morse", Morse)
-	r.GET("/url", URL)
-	r.GET("/unicode", Unicode)
-	r.GET("/json2go", JSON2GO)
-	r.GET("/json2xml", JSON2XML)
-	r.GET("/json2yaml", JSON2YAML)
-	r.GET("/pdf2img", PDF2IMG)
-	r.GET("/websocket", WebSocket)
+	// cache 30 minutes
+	cacheEtag := Cache(30 * time.Minute)
+
+	g := r.Group("/", cacheEtag)
+
+	g.GET("/", Index)
+	g.GET("/base64", Base64)
+	g.GET("/image2base64", Image2Base64)
+	g.GET("/tinyimg", TinyImage)
+	g.GET("/hash", Hash)
+	g.GET("/file-hash", FileHash)
+	g.GET("/json", JSONView)
+	g.GET("/number", Number)
+	g.GET("/qrcode", QRCode)
+	g.GET("/regex", Regex)
+	g.GET("/timestamp", Timestamp)
+	g.GET("/color", Color)
+	g.GET("/aes", AES)
+	g.GET("/des", DES)
+	g.GET("/rsa", RSA)
+	g.GET("/morse", Morse)
+	g.GET("/url", URL)
+	g.GET("/unicode", Unicode)
+	g.GET("/json2go", JSON2GO)
+	g.GET("/json2xml", JSON2XML)
+	g.GET("/json2yaml", JSON2YAML)
+	g.GET("/pdf2img", PDF2IMG)
+	g.GET("/websocket", WebSocket)
 	return r
+}
+
+func Cache(duration time.Duration) func(*gin.Context) {
+	lastModify := time.Now()
+	lastModifyFormat := lastModify.Format(http.TimeFormat)
+	return func(c *gin.Context) {
+		c.Header("Cache-Control", fmt.Sprintf("max-age=%d", int64(duration.Seconds())))
+		c.Header("Last-Modified", lastModifyFormat)
+
+		if c.Request.Method == "GET" && c.GetHeader("If-Modified-Since") == lastModifyFormat {
+			c.AbortWithStatus(http.StatusNotModified)
+			return
+		}
+		c.Next()
+	}
 }
