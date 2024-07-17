@@ -6,7 +6,7 @@
 2. 安装 Git
 3. 构建
 ```shell
-git clone [https://github.com/wangyiwy/oktools.git](https://github.com/whooyun/oktools.git)
+git clone [https://github.com/whooyun/oktools.git]
 cd oktools
 go build
 ```
